@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>想定指摘事項と法理解釈に関する対照表</title>
     <style>
         :root {
@@ -15,17 +15,18 @@
             --highlight-color: #fff700;
         }
 
+        /* 画面全体の横スクロールと拡大によるバグを完全に禁止 */
+        html, body {
+            overflow-x: hidden;
+            position: relative;
+            width: 100%;
+            touch-action: pan-y; /* 縦スクロールのみを許可し、ピンチズームやダブルタップズームを禁止 */
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-        }
-
-        /* 画面全体の横スクロールを完全に禁止 */
-        html, body {
-            overflow-x: hidden;
-            width: 100%;
-            position: relative;
         }
 
         body {
@@ -218,7 +219,7 @@
         <input type="text" id="searchInput" placeholder="キーワードを入力して検索...">
     </div>
 
- 
+  
     <h2 class="section-title">### Ⅰ．親の権力・家族内の序列・家父長的な支配に関する事項</h2>
     
     <div class="qa-item">
@@ -732,80 +733,65 @@
     </div>
 
 <script>
+    // ページロード時およびリロード時のスクロール最上部固定
     if (history.scrollRestoration) {
         history.scrollRestoration = 'manual';
     }
     window.scrollTo(0, 0);
 
-    // スマートフォンでのピンチズーム（二本指での拡大）を禁止するJavaScript
-    document.addEventListener('touchstart', (e) => {
-        if (e.touches.length > 1) e.preventDefault();
+    // スクロール中のピンチズーム（拡大）を完全に無効化するイベントリスナー
+    document.addEventListener('touchmove', function (event) {
+        if (event.scale !== undefined && event.scale !== 1) { 
+            event.preventDefault(); 
+        }
     }, { passive: false });
 
-    document.addEventListener('DOMContentLoaded', () => {
+    // ダブルタップによるズームも禁止
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function (event) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, false);
+
+    document.addEventListener("DOMContentLoaded", () => {
         const searchInput = document.getElementById('searchInput');
         const qaItems = document.querySelectorAll('.qa-item');
         const sectionTitles = document.querySelectorAll('.section-title');
 
-        // ### と ** のマークダウン記号をあらかじめ完全にクリーニング
-        sectionTitles.forEach(title => {
-            title.innerHTML = title.innerHTML.replace(/[#*]/g, '');
-        });
-
+        // テキストのみをクリーンに取得して保持する初期処理
         qaItems.forEach(item => {
             const q = item.querySelector('.qa-trigger');
             const a = item.querySelector('.answer-body');
             
-            q.innerHTML = q.innerHTML.replace(/[#*]/g, '');
-            a.innerHTML = a.innerHTML.replace(/[#*]/g, '');
+            // # や * を削除したピュアなテキスト（HTMLタグを含まない情報）を取り出す
+            const cleanText = (element) => {
+                return element.textContent.replace(/[#*]/g, '');
+            };
+            
+            q.dataset.originalText = cleanText(q);
+            a.dataset.originalText = cleanText(a);
+            
+            // 初期の見た目からも記号を排除して上書き
+            q.textContent = q.dataset.originalText;
+            a.textContent = a.dataset.originalText;
+        });
 
-            // 完全にプレーンなテキスト（検索用）と、HTML構造（復元用）を別々に保存
-            q.dataset.originalText = q.textContent;
-            a.dataset.originalText = a.textContent;
-            q.dataset.baseHtml = q.innerHTML;
-            a.dataset.baseHtml = a.innerHTML;
+        sectionTitles.forEach(title => {
+            title.textContent = title.textContent.replace(/[#*]/g, '');
         });
 
         function escapeRegExp(string) {
             return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
-        // テキストノードのみを対象に安全にハイライト置換を行う関数
-        function highlightTextNode(element, keyword) {
-            if (!keyword) return;
-            const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
-            
-            // 子要素を走査
-            const walk = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
-            let node;
-            const nodesToReplace = [];
-            
-            while (node = walk.nextNode()) {
-                if (node.nodeValue.match(regex)) {
-                    nodesToReplace.push(node);
-                }
-            }
-            
-            // マッチしたテキストノードを<mark>に置き換え
-            nodesToReplace.forEach(textNode => {
-                const parent = textNode.parentNode;
-                // すでにmarkタグの中にいる場合はスキップ
-                if (parent.tagName === 'MARK') return;
-
-                const html = textNode.nodeValue.replace(regex, '<mark>$1</mark>');
-                const dummy = document.createElement('span');
-                dummy.innerHTML = html;
-                
-                while (dummy.firstChild) {
-                    parent.insertBefore(dummy.firstChild, textNode);
-                }
-                parent.removeChild(textNode);
-            });
-        }
-
-        // 検索メイン処理
+        // 検索およびハイライト処理
         searchInput.addEventListener('input', function() {
             const keyword = this.value.trim();
+            
+            // 検索中も常にスクロールをトップに固定
             window.scrollTo(0, 0);
 
             qaItems.forEach(item => {
@@ -813,27 +799,25 @@
                 const a = item.querySelector('.answer-body');
                 const content = item.querySelector('.qa-content');
                 
-                // 1. まず元のクリーンな状態にリセット
-                q.innerHTML = q.dataset.baseHtml;
-                a.innerHTML = a.dataset.baseHtml;
-
                 if (keyword === '') {
                     item.style.display = 'block';
+                    q.textContent = q.dataset.originalText;
+                    a.textContent = a.dataset.originalText;
                     item.classList.remove('active');
                     content.style.maxHeight = null;
                 } else {
-                    // 純粋なテキストのみで部分一致判定（タグに邪魔されない）
-                    const qMatch = q.dataset.originalText.toLowerCase().includes(keyword.toLowerCase());
-                    const aMatch = a.dataset.originalText.toLowerCase().includes(keyword.toLowerCase());
+                    const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
+                    const qMatch = q.dataset.originalText.match(regex);
+                    const aMatch = a.dataset.originalText.match(regex);
 
                     if (qMatch || aMatch) {
                         item.style.display = 'block';
                         item.classList.add('active');
                         content.style.maxHeight = '2000px';
                         
-                        // 安全にテキスト部分だけを狙ってハイライト
-                        highlightTextNode(q, keyword);
-                        highlightTextNode(a, keyword);
+                        // textContentではなく、エスケープされたテキストに対して安全にmarkタグを挿入
+                        q.innerHTML = q.dataset.originalText.replace(regex, '<mark>$1</mark>');
+                        a.innerHTML = a.dataset.originalText.replace(regex, '<mark>$1</mark>');
                     } else {
                         item.style.display = 'none';
                         item.classList.remove('active');
@@ -850,7 +834,9 @@
                 
                 if (item.classList.contains('active')) {
                     content.style.maxHeight = content.scrollHeight + 'px';
-                    setTimeout(() => { content.style.maxHeight = '0px'; }, 10);
+                    setTimeout(() => {
+                        content.style.maxHeight = '0px';
+                    }, 10);
                     item.classList.remove('active');
                 } else {
                     item.classList.add('active');
