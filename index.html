@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -13,6 +12,7 @@
             --bg-color: #f8f9fa;
             --card-bg: #ffffff;
             --border-color: #e2e8f0;
+            --highlight-color: #fff700; /* 蛍光ペンの色 */
         }
 
         * {
@@ -35,7 +35,7 @@
         }
 
         header {
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 20px;
         }
@@ -52,11 +52,44 @@
             background-color: var(--card-bg);
             border-left: 4px solid var(--primary-color);
             padding: 20px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             border-radius: 0 4px 4px 0;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             font-size: 0.95rem;
             text-align: justify;
+        }
+
+        /* 検索バーのスタイリング（上部固定） */
+        .search-container {
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            padding: 15px 0;
+            margin-bottom: 20px;
+            z-index: 100;
+            border-bottom: 1px dashed var(--accent-color);
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #searchInput:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* ハイライトのスタイリング */
+        mark {
+            background-color: var(--highlight-color);
+            color: inherit;
+            padding: 0 2px;
+            border-radius: 2px;
         }
 
         .section-title {
@@ -126,7 +159,8 @@
         }
 
         .qa-item.active .qa-content {
-            max-height: 1000px;
+            /* 検索で開いた時に高さが足りなくなるのを防ぐため大きめに設定 */
+            max-height: 2000px; 
             transition: max-height 0.3s cubic-bezier(1, 0, 1, 0);
         }
 
@@ -174,6 +208,11 @@
         前文<br>
         予めお含みおきいただきたいのは、本書面が貴殿の情動や人格を排撃する性質のものではないという点です。言語的コミュニケーションが孕む多義性と、それによる解釈の不一致がもたらす不合理な紛争を回避すべく、弊方の法理的帰結と認識の平仄をあらかじめ客観的に提示し、共有するための合理的一助として、以下にその詳細を記述いたします。
     </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="キーワードを入力して検索...">
+    </div>
+
 
     <h2 class="section-title">### Ⅰ．親の権力・家族内の序列・家父長的な支配に関する事項</h2>
     
@@ -684,38 +723,118 @@
             <div class="answer-body">**A70.** 本通知および想定問答は、すべて現行の日本法（民法・マイナンバー法・行政法規）および確立された法解釈に依拠した「正当なリーガル・ロジック（法的論理）」です。これを「屁理屈」と断じる姿勢こそが、客観的・理性的議論を拒絶する主観的感情論の証左であり、被通知人に非があることを自ら認めるものに他なりません。</div>
         </div>
     </div>
-
-</div>
+    
+    </div>
 
 <script>
-    document.querySelectorAll('.qa-trigger').forEach(trigger => {
-        trigger.addEventListener('click', () => {
-            const item = trigger.parentElement;
-            const content = item.querySelector('.qa-content');
+    // リロード時にスクロール位置を一番上に強制リセット
+    if (history.scrollRestoration) {
+        history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const searchInput = document.getElementById('searchInput');
+        const qaItems = document.querySelectorAll('.qa-item');
+        const sectionTitles = document.querySelectorAll('.section-title');
+
+        // ### や *** などの不要な記号を削除し、検索用のオリジナルテキストを保存
+        qaItems.forEach(item => {
+            const q = item.querySelector('.qa-trigger');
+            const a = item.querySelector('.answer-body');
             
-            if (item.classList.contains('active')) {
-                // 閉じる動作
-                content.style.maxHeight = content.scrollHeight + 'px';
-                setTimeout(() => {
-                    content.style.maxHeight = '0px';
-                }, 10);
-                item.classList.remove('active');
-            } else {
-                // 開く動作
-                item.classList.add('active');
-                content.style.maxHeight = content.scrollHeight + 'px';
-                // アニメーション完了後に制限を解除してバグを防ぐ
-                setTimeout(() => {
-                    if(item.classList.contains('active')) {
-                        content.style.maxHeight = 'none';
+            // # と * を全て削除
+            const cleanHTML = (html) => html.replace(/[#*]/g, '');
+            
+            q.dataset.original = cleanHTML(q.innerHTML);
+            a.dataset.original = cleanHTML(a.innerHTML);
+            
+            // 表示も綺麗にしておく
+            q.innerHTML = q.dataset.original;
+            a.innerHTML = a.dataset.original;
+        });
+
+        // セクションタイトルの ### も削除
+        sectionTitles.forEach(title => {
+            title.innerHTML = title.innerHTML.replace(/[#*]/g, '');
+        });
+
+        // 正規表現のエスケープ用関数
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        // 検索機能のロジック
+        searchInput.addEventListener('input', function() {
+            const keyword = this.value.trim();
+            
+            // 検索機能利用中はページの一番上にスクロールを固定
+            window.scrollTo(0, 0);
+
+            qaItems.forEach(item => {
+                const q = item.querySelector('.qa-trigger');
+                const a = item.querySelector('.answer-body');
+                const content = item.querySelector('.qa-content');
+                
+                if (keyword === '') {
+                    // 検索欄が空の場合は全て元に戻して閉じる
+                    item.style.display = 'block';
+                    q.innerHTML = q.dataset.original;
+                    a.innerHTML = a.dataset.original;
+                    item.classList.remove('active');
+                    content.style.maxHeight = null;
+                } else {
+                    const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
+                    const qMatch = q.dataset.original.match(regex);
+                    const aMatch = a.dataset.original.match(regex);
+
+                    if (qMatch || aMatch) {
+                        // 文字が含まれている場合は表示して開く
+                        item.style.display = 'block';
+                        item.classList.add('active');
+                        content.style.maxHeight = '2000px'; // 展開を強制
+                        
+                        // ハイライト処理（<mark>タグで囲む）
+                        q.innerHTML = q.dataset.original.replace(regex, '<mark>$1</mark>');
+                        a.innerHTML = a.dataset.original.replace(regex, '<mark>$1</mark>');
+                    } else {
+                        // 文字が含まれていない場合は非表示
+                        item.style.display = 'none';
+                        item.classList.remove('active');
                     }
-                }, 300);
-            }
+                }
+            });
+        });
+
+        // アコーディオンの開閉処理（手動クリック用）
+        document.querySelectorAll('.qa-trigger').forEach(trigger => {
+            trigger.addEventListener('click', () => {
+                // 検索キーワードが入っている時は手動で閉じられないようにするかは自由ですが、
+                // 今回は通常の開閉動作を維持しています。
+                const item = trigger.parentElement;
+                const content = item.querySelector('.qa-content');
+                
+                if (item.classList.contains('active')) {
+                    // 閉じる動作
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    setTimeout(() => {
+                        content.style.maxHeight = '0px';
+                    }, 10);
+                    item.classList.remove('active');
+                } else {
+                    // 開く動作
+                    item.classList.add('active');
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    setTimeout(() => {
+                        if(item.classList.contains('active')) {
+                            content.style.maxHeight = 'none';
+                        }
+                    }, 300);
+                }
+            });
         });
     });
 </script>
 
 </body>
 </html>
-
-```
