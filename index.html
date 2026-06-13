@@ -15,12 +15,15 @@
             --highlight-color: #fff700;
         }
 
-        /* 画面全体の横スクロールと拡大によるバグを完全に禁止 */
+        /* 2. CSSで横スクロールを完全に禁止し、縦方向の操作のみに限定 */
         html, body {
             overflow-x: hidden;
             position: relative;
             width: 100%;
-            touch-action: pan-y; /* 縦スクロールのみを許可し、ピンチズームやダブルタップズームを禁止 */
+            /* 画面のバウンス（引っ張ったときのバネのような挙動）による拡大バグを防ぐ */
+            overscroll-behavior-y: none; 
+            /* ダブルタップズームやピンチズームのブラウザ標準動作をCSSレベルで無効化 */
+            touch-action: pan-y; 
         }
 
         * {
@@ -219,7 +222,7 @@
         <input type="text" id="searchInput" placeholder="キーワードを入力して検索...">
     </div>
 
-  
+
     <h2 class="section-title">### Ⅰ．親の権力・家族内の序列・家父長的な支配に関する事項</h2>
     
     <div class="qa-item">
@@ -733,40 +736,46 @@
     </div>
 
 <script>
-    // ページロード時およびリロード時のスクロール最上部固定
+    // 3. リロード時に強制的に等倍(100%)＆最上部にリセットする
     if (history.scrollRestoration) {
         history.scrollRestoration = 'manual';
     }
     window.scrollTo(0, 0);
 
-    // スクロール中のピンチズーム（拡大）を完全に無効化するイベントリスナー
-    document.addEventListener('touchmove', function (event) {
-        if (event.scale !== undefined && event.scale !== 1) { 
-            event.preventDefault(); 
+    // 4. スクロール中も含め、2本以上の指での操作（ピンチズーム）を「何があっても」強制拒否
+    document.addEventListener('touchstart', function (event) {
+        if (event.touches.length > 1) {
+            event.preventDefault(); // 2本以上の指が触れた瞬間に入力を無効化
         }
     }, { passive: false });
 
-    // ダブルタップによるズームも禁止
+    document.addEventListener('touchmove', function (event) {
+        // スクロール中で指が動いている時でも、2本以上の指の動き、または拡大（scale）の兆候があれば即座に遮断
+        if (event.touches.length > 1 || (event.scale !== undefined && event.scale !== 1)) {
+            event.preventDefault();
+        }
+    }, { passive: false });
+
+    // 5. ダブルタップによる自動ズームも完全に排除
     let lastTouchEnd = 0;
     document.addEventListener('touchend', function (event) {
         const now = (new Date()).getTime();
         if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
+            event.preventDefault(); // 300ミリ秒以内の連続タップを無効化
         }
         lastTouchEnd = now;
     }, false);
+
 
     document.addEventListener("DOMContentLoaded", () => {
         const searchInput = document.getElementById('searchInput');
         const qaItems = document.querySelectorAll('.qa-item');
         const sectionTitles = document.querySelectorAll('.section-title');
 
-        // テキストのみをクリーンに取得して保持する初期処理
         qaItems.forEach(item => {
             const q = item.querySelector('.qa-trigger');
             const a = item.querySelector('.answer-body');
             
-            // # や * を削除したピュアなテキスト（HTMLタグを含まない情報）を取り出す
             const cleanText = (element) => {
                 return element.textContent.replace(/[#*]/g, '');
             };
@@ -774,7 +783,6 @@
             q.dataset.originalText = cleanText(q);
             a.dataset.originalText = cleanText(a);
             
-            // 初期の見た目からも記号を排除して上書き
             q.textContent = q.dataset.originalText;
             a.textContent = a.dataset.originalText;
         });
@@ -787,11 +795,10 @@
             return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
-        // 検索およびハイライト処理
         searchInput.addEventListener('input', function() {
             const keyword = this.value.trim();
             
-            // 検索中も常にスクロールをトップに固定
+            // 検索中もスクロールはトップに固定
             window.scrollTo(0, 0);
 
             qaItems.forEach(item => {
@@ -815,7 +822,6 @@
                         item.classList.add('active');
                         content.style.maxHeight = '2000px';
                         
-                        // textContentではなく、エスケープされたテキストに対して安全にmarkタグを挿入
                         q.innerHTML = q.dataset.originalText.replace(regex, '<mark>$1</mark>');
                         a.innerHTML = a.dataset.originalText.replace(regex, '<mark>$1</mark>');
                     } else {
@@ -826,7 +832,6 @@
             });
         });
 
-        // アコーディオン開閉
         document.querySelectorAll('.qa-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
                 const item = trigger.parentElement;
