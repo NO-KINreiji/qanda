@@ -12,7 +12,7 @@
             --bg-color: #f8f9fa;
             --card-bg: #ffffff;
             --border-color: #e2e8f0;
-            --highlight-color: #fff700; /* 蛍光ペンの色 */
+            --highlight-color: #fff700;
         }
 
         * {
@@ -59,7 +59,6 @@
             text-align: justify;
         }
 
-        /* 検索バーのスタイリング（上部固定） */
         .search-container {
             position: sticky;
             top: 0;
@@ -84,7 +83,6 @@
             border-color: var(--primary-color);
         }
 
-        /* ハイライトのスタイリング */
         mark {
             background-color: var(--highlight-color);
             color: inherit;
@@ -159,7 +157,6 @@
         }
 
         .qa-item.active .qa-content {
-            /* 検索で開いた時に高さが足りなくなるのを防ぐため大きめに設定 */
             max-height: 2000px; 
             transition: max-height 0.3s cubic-bezier(1, 0, 1, 0);
         }
@@ -213,7 +210,7 @@
         <input type="text" id="searchInput" placeholder="キーワードを入力して検索...">
     </div>
 
-
+ 
     <h2 class="section-title">### Ⅰ．親の権力・家族内の序列・家父長的な支配に関する事項</h2>
     
     <div class="qa-item">
@@ -727,7 +724,6 @@
     </div>
 
 <script>
-    // リロード時にスクロール位置を一番上に強制リセット
     if (history.scrollRestoration) {
         history.scrollRestoration = 'manual';
     }
@@ -738,37 +734,64 @@
         const qaItems = document.querySelectorAll('.qa-item');
         const sectionTitles = document.querySelectorAll('.section-title');
 
-        // ### や *** などの不要な記号を削除し、検索用のオリジナルテキストを保存
+        // 表示の初期クリーンアップと、検索用の「純粋なプレーンテキスト」の保存
         qaItems.forEach(item => {
             const q = item.querySelector('.qa-trigger');
             const a = item.querySelector('.answer-body');
             
-            // # と * を全て削除
-            const cleanHTML = (html) => html.replace(/[#*]/g, '');
+            // クリーンアップ関数（#と*を除去）
+            const cleanText = (text) => text.replace(/[#*]/g, '');
+
+            // 最初に画面表示上の不要な記号を消す
+            q.innerHTML = cleanText(q.innerHTML);
+            a.innerHTML = cleanText(a.innerHTML);
             
-            q.dataset.original = cleanHTML(q.innerHTML);
-            a.dataset.original = cleanHTML(a.innerHTML);
-            
-            // 表示も綺麗にしておく
-            q.innerHTML = q.dataset.original;
-            a.innerHTML = a.dataset.original;
+            // HTMLタグを一切含まない、検索判定専用の純粋なプレーンテキスト（大文字小文字を区別しないため小文字化）
+            q.dataset.searchText = q.textContent.replace(/[#*]/g, '').toLowerCase();
+            a.dataset.searchText = a.textContent.replace(/[#*]/g, '').toLowerCase();
+
+            // ハイライト復元用に、初期状態のHTML構造を退避
+            q.dataset.cleanHtml = q.innerHTML;
+            a.dataset.cleanHtml = a.innerHTML;
         });
 
-        // セクションタイトルの ### も削除
+        // セクションタイトルの ### を削除
         sectionTitles.forEach(title => {
             title.innerHTML = title.innerHTML.replace(/[#*]/g, '');
         });
 
-        // 正規表現のエスケープ用関数
         function escapeRegExp(string) {
             return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
-        // 検索機能のロジック
-        searchInput.addEventListener('input', function() {
-            const keyword = this.value.trim();
+        // テキストノードのみを対象にハイライトを当てる関数（HTMLタグ誤爆防止）
+        function applyHighlight(element, keyword) {
+            if (!keyword) return;
+            const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
             
-            // 検索機能利用中はページの一番上にスクロールを固定
+            // 子要素を走査してテキストノードだけを書き換える
+            const innerHighlight = (node) => {
+                if (node.nodeType === 3) { // テキストノードの場合
+                    const text = node.nodeValue;
+                    if (regex.test(text)) {
+                        const span = document.createElement('span');
+                        span.innerHTML = text.replace(regex, '<mark>$1</mark>');
+                        node.parentNode.replaceChild(span, node);
+                    }
+                } else if (node.nodeType === 1 && node.childNodes && !/(style|script)/i.test(node.tagName)) {
+                    // 子要素があれば再帰処理
+                    for (let i = 0; i < node.childNodes.length; i++) {
+                        innerHighlight(node.childNodes[i]);
+                    }
+                }
+            };
+            innerHighlight(element);
+        }
+
+        // 検索ロジック
+        searchInput.addEventListener('input', function() {
+            const keyword = this.value.trim().toLowerCase();
+            
             window.scrollTo(0, 0);
 
             qaItems.forEach(item => {
@@ -776,29 +799,28 @@
                 const a = item.querySelector('.answer-body');
                 const content = item.querySelector('.qa-content');
                 
+                // 一旦初期状態（ハイライトなし）のHTMLに戻す
+                q.innerHTML = q.dataset.cleanHtml;
+                a.innerHTML = a.dataset.cleanHtml;
+
                 if (keyword === '') {
-                    // 検索欄が空の場合は全て元に戻して閉じる
                     item.style.display = 'block';
-                    q.innerHTML = q.dataset.original;
-                    a.innerHTML = a.dataset.original;
                     item.classList.remove('active');
                     content.style.maxHeight = null;
                 } else {
-                    const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
-                    const qMatch = q.dataset.original.match(regex);
-                    const aMatch = a.dataset.original.match(regex);
+                    // タグを含まない純粋なテキストデータに対して文字が含まれるかチェック
+                    const qMatch = q.dataset.searchText.includes(keyword);
+                    const aMatch = a.dataset.searchText.includes(keyword);
 
                     if (qMatch || aMatch) {
-                        // 文字が含まれている場合は表示して開く
                         item.style.display = 'block';
                         item.classList.add('active');
-                        content.style.maxHeight = '2000px'; // 展開を強制
+                        content.style.maxHeight = '2000px';
                         
-                        // ハイライト処理（<mark>タグで囲む）
-                        q.innerHTML = q.dataset.original.replace(regex, '<mark>$1</mark>');
-                        a.innerHTML = a.dataset.original.replace(regex, '<mark>$1</mark>');
+                        // 安全にテキスト部分だけにハイライトを適用
+                        applyHighlight(q, keyword);
+                        applyHighlight(a, keyword);
                     } else {
-                        // 文字が含まれていない場合は非表示
                         item.style.display = 'none';
                         item.classList.remove('active');
                     }
@@ -806,23 +828,19 @@
             });
         });
 
-        // アコーディオンの開閉処理（手動クリック用）
+        // アコーディオン開閉
         document.querySelectorAll('.qa-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
-                // 検索キーワードが入っている時は手動で閉じられないようにするかは自由ですが、
-                // 今回は通常の開閉動作を維持しています。
                 const item = trigger.parentElement;
                 const content = item.querySelector('.qa-content');
                 
                 if (item.classList.contains('active')) {
-                    // 閉じる動作
                     content.style.maxHeight = content.scrollHeight + 'px';
                     setTimeout(() => {
                         content.style.maxHeight = '0px';
                     }, 10);
                     item.classList.remove('active');
                 } else {
-                    // 開く動作
                     item.classList.add('active');
                     content.style.maxHeight = content.scrollHeight + 'px';
                     setTimeout(() => {
