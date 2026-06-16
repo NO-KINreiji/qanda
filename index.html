@@ -12,18 +12,31 @@ html,body{
     background:#000;
     color:#00ff00;
     font-family:Consolas,monospace;
-    overflow-x:hidden;
+    overflow:hidden;
 }
 
-#container{
-    padding:20px;
+#notice{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    background:#111;
+    border-bottom:1px solid #00ff00;
+    padding:8px;
+    text-align:center;
+    z-index:9999;
+    font-size:14px;
+}
+
+#output{
+    margin-top:40px;
+    padding:10px;
     white-space:pre-wrap;
     word-break:break-all;
-    line-height:1.5;
 }
 
 .blink{
-    animation:blink 1s infinite;
+    animation:blink .7s infinite;
 }
 
 @keyframes blink{
@@ -33,118 +46,172 @@ html,body{
 </head>
 <body>
 
-<div id="container">
-<span class="blink">█</span>
-</div>
+
+
+<div id="output"></div>
 
 <script>
 
-const out = document.getElementById("container");
+const output = document.getElementById("output");
 
-function write(text){
-    out.innerHTML += text + "\n";
-}
+const messages = [
 
-write("Initializing...");
-write("");
+"INITIALIZING...",
+"BOOTSTRAP COMPLETE",
+"DEVICE ANALYSIS STARTED",
+"COLLECTING BROWSER METADATA",
+"ENUMERATING FEATURES",
+"INDEXING SCREEN PARAMETERS",
+"ANALYZING RENDER ENGINE",
+"CALCULATING RANDOM NUMBERS",
+"CHECKING KEYBOARD EXISTENCE",
+"CONFIRMING HUMAN PRESENCE",
+"SCANNING COFFEE LEVEL",
+"COUNTING PIXELS",
+"MEASURING ABSOLUTE CONFUSION",
+"VERIFYING EXISTENCE OF USER",
+"SEARCHING FOR INTELLIGENCE",
+"INTELLIGENCE NOT FOUND",
+"RETRYING...",
+"INTELLIGENCE MAY EXIST",
+"CHECKING CAT OWNERSHIP",
+"CALCULATING LUCK STAT",
+"GENERATING MEANINGLESS HASH",
+"HASH ACCEPTED",
+"PROCESSING...",
+"PROCESSING...",
+"PROCESSING...",
+"ANALYZING WALLPAPER QUALITY",
+"MEASURING PROCRASTINATION INDEX",
+"SCANNING FOR MEMES",
+"MEMES DETECTED",
+"DANGEROUS AMOUNT OF MEMES",
+"CALCULATING CHAOS LEVEL",
+"LOCATING NEAREST POTATO",
+"CHECKING FOR DRAGON PRESENCE",
+"NO DRAGON DETECTED",
+"VERIFYING THAT 1+1=2",
+"SUCCESS",
+"ANALYZING WIFI VIBES",
+"CHECKING REALITY CONSISTENCY",
+"REALITY STATUS: QUESTIONABLE",
+"GENERATING RANDOM REPORT",
+"REPORT GENERATED",
+"REPORT LOST",
+"SEARCHING FOR REPORT",
+"REPORT STILL LOST",
+"CALCULATING PROBABILITY OF EXISTENCE",
+"EXISTENCE CONFIDENCE: 61%",
+"ANALYZING KEYBOARD ABUSE",
+"CHECKING CAPS LOCK STATUS",
+"MEASURING GAMER ENERGY",
+"SCANNING FOR HOMEWORK",
+"HOMEWORK DETECTED",
+"WARNING: HOMEWORK DETECTED",
+"CRITICAL HOMEWORK LEVELS",
+"ATTEMPTING HOMEWORK DELETION",
+"ACCESS DENIED",
+"MEASURING BOREDOM",
+"BOREDOM LEVEL: MAXIMUM",
+"GENERATING USELESS STATISTICS",
+"USELESS STATISTICS GENERATED",
+"COUNTING ATOMS",
+"TOO MANY ATOMS",
+"CHECKING WHETHER USER IS HUMAN",
+"LIKELY HUMAN",
+"PROBABLY HUMAN",
+"MAYBE HUMAN",
+"UNCERTAIN",
+"RUNNING ADVANCED ANALYSIS",
+"ADVANCED ANALYSIS COMPLETE",
+"ADVANCED ANALYSIS WAS POINTLESS",
+"FINALIZING REPORT"
 
-const data = {
-    "User Agent": navigator.userAgent,
-    "Platform": navigator.platform,
-    "Language": navigator.language,
-    "Languages": navigator.languages.join(", "),
-    "Cookies Enabled": navigator.cookieEnabled,
-    "Online": navigator.onLine,
-    "Hardware Concurrency": navigator.hardwareConcurrency,
-    "Device Memory (GB)": navigator.deviceMemory || "Unknown",
-    "Max Touch Points": navigator.maxTouchPoints,
-    "Timezone": Intl.DateTimeFormat().resolvedOptions().timeZone,
-    "Screen Width": screen.width,
-    "Screen Height": screen.height,
-    "Available Width": screen.availWidth,
-    "Available Height": screen.availHeight,
-    "Color Depth": screen.colorDepth,
-    "Pixel Depth": screen.pixelDepth,
-    "Inner Width": window.innerWidth,
-    "Inner Height": window.innerHeight,
-    "Outer Width": window.outerWidth,
-    "Outer Height": window.outerHeight,
-    "Referrer": document.referrer || "(none)",
-    "URL": location.href
-};
-
-for(const key in data){
-    write(key + ": " + data[key]);
-}
-
-write("");
-
-navigator.storage?.estimate?.().then(storage=>{
-    write("Storage Usage: " + storage.usage + " bytes");
-    write("Storage Quota: " + storage.quota + " bytes");
-});
-
-if(navigator.connection){
-    write("Connection Type: " + navigator.connection.effectiveType);
-    write("Downlink: " + navigator.connection.downlink + " Mbps");
-    write("RTT: " + navigator.connection.rtt + " ms");
-}
-
-if(navigator.getBattery){
-    navigator.getBattery().then(battery=>{
-        write("");
-        write("Battery Level: " + Math.round(battery.level*100) + "%");
-        write("Charging: " + battery.charging);
-    });
-}
-
-fetch("https://api.ipify.org?format=json")
-.then(r=>r.json())
-.then(ip=>{
-    write("");
-    write("Public IP: " + ip.ip);
-});
-
-if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(
-        pos=>{
-            write("");
-            write("Latitude: " + pos.coords.latitude);
-            write("Longitude: " + pos.coords.longitude);
-            write("Accuracy: " + pos.coords.accuracy + "m");
-        },
-        ()=>{
-            write("");
-            write("Location: ACCESS DENIED");
-        }
-    );
-}
-
-write("");
-write("Scanning browser capabilities...");
-write("");
-
-const features = [
-    "bluetooth",
-    "clipboard",
-    "credentials",
-    "mediaDevices",
-    "serviceWorker",
-    "usb",
-    "wakeLock",
-    "share"
 ];
 
-features.forEach(f=>{
-    write(
-        f + ": " +
-        (navigator[f] ? "AVAILABLE" : "UNAVAILABLE")
+function randomHex(len){
+    const chars="0123456789ABCDEF";
+    let s="";
+    for(let i=0;i<len;i++){
+        s+=chars[Math.floor(Math.random()*chars.length)];
+    }
+    return s;
+}
+
+function randomLine(){
+
+    let text =
+        "[" + randomHex(8) + "] " +
+        messages[Math.floor(Math.random()*messages.length)];
+
+    output.innerHTML += text + "\n";
+
+    if(Math.random() < 0.25){
+        output.innerHTML +=
+        "HASH: " + randomHex(32) + "\n";
+    }
+
+    if(Math.random() < 0.15){
+        output.innerHTML +=
+        "CONFIDENCE: " +
+        Math.floor(Math.random()*100) +
+        "%\n";
+    }
+
+    if(output.innerHTML.length > 100000){
+        output.innerHTML =
+        output.innerHTML.slice(30000);
+    }
+}
+
+setInterval(randomLine,5);
+
+setInterval(()=>{
+    window.scrollTo(
+        0,
+        document.body.scrollHeight
     );
-});
+},1);
+
+function printInfo(){
+
+    output.innerHTML += "\n";
+    output.innerHTML += "=== BROWSER INFO ===\n";
+
+    output.innerHTML +=
+    "USER AGENT: " +
+    navigator.userAgent + "\n";
+
+    output.innerHTML +=
+    "LANGUAGE: " +
+    navigator.language + "\n";
+
+    output.innerHTML +=
+    "PLATFORM: " +
+    navigator.platform + "\n";
+
+    output.innerHTML +=
+    "SCREEN: " +
+    screen.width +
+    "x" +
+    screen.height +
+    "\n";
+
+    output.innerHTML +=
+    "TIMEZONE: " +
+    Intl.DateTimeFormat()
+    .resolvedOptions()
+    .timeZone +
+    "\n";
+
+    output.innerHTML += "\n";
+}
+
+printInfo();
 
 setInterval(()=>{
     document.title =
-        Math.random().toString(36).substring(2,8).toUpperCase();
+    randomHex(6);
 },500);
 
 </script>
