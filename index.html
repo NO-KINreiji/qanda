@@ -3,217 +3,175 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title></title>
+<title>SYSTEM_OVERRIDE_</title>
 
 <style>
-html,body{
-    margin:0;
-    padding:0;
-    background:#000;
-    color:#00ff00;
-    font-family:Consolas,monospace;
-    overflow:hidden;
+html, body {
+    margin: 0;
+    padding: 0;
+    background: #050505;
+    color: #33ff33; /* クラシックなハッカーグリーン */
+    font-family: 'Courier New', Courier, monospace;
+    overflow: hidden;
 }
 
-#notice{
-    position:fixed;
-    top:0;
-    left:0;
-    right:0;
-    background:#111;
-    border-bottom:1px solid #00ff00;
-    padding:8px;
-    text-align:center;
-    z-index:9999;
-    font-size:14px;
+#notice {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #111;
+    border-bottom: 2px solid #00ff00;
+    padding: 8px;
+    text-align: center;
+    z-index: 9999;
+    font-size: 13px;
+    color: #ff3333;
+    font-weight: bold;
 }
 
-#output{
-    margin-top:40px;
-    padding:10px;
-    white-space:pre-wrap;
-    word-break:break-all;
+#console {
+    margin-top: 50px;
+    padding: 15px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
-.blink{
-    animation:blink .7s infinite;
-}
-
-@keyframes blink{
-    50%{opacity:0;}
-}
+/* 警告などの目立つログ用 */
+.alert { color: #ff3333; font-weight: bold; }
+.success { color: #33ffff; }
+.warning { color: #ffff33; }
 </style>
 </head>
 <body>
 
+<div id="notice">
+    ⚠️ JOKE MODE - 本物のハッキングやデータ送信は一切行っていません。
+</div>
 
-
-<div id="output"></div>
+<div id="console"></div>
 
 <script>
+const consoleElem = document.getElementById("console");
 
-const output = document.getElementById("output");
-
-const messages = [
-
-"INITIALIZING...",
-"BOOTSTRAP COMPLETE",
-"DEVICE ANALYSIS STARTED",
-"COLLECTING BROWSER METADATA",
-"ENUMERATING FEATURES",
-"INDEXING SCREEN PARAMETERS",
-"ANALYZING RENDER ENGINE",
-"CALCULATING RANDOM NUMBERS",
-"CHECKING KEYBOARD EXISTENCE",
-"CONFIRMING HUMAN PRESENCE",
-"SCANNING COFFEE LEVEL",
-"COUNTING PIXELS",
-"MEASURING ABSOLUTE CONFUSION",
-"VERIFYING EXISTENCE OF USER",
-"SEARCHING FOR INTELLIGENCE",
-"INTELLIGENCE NOT FOUND",
-"RETRYING...",
-"INTELLIGENCE MAY EXIST",
-"CHECKING CAT OWNERSHIP",
-"CALCULATING LUCK STAT",
-"GENERATING MEANINGLESS HASH",
-"HASH ACCEPTED",
-"PROCESSING...",
-"PROCESSING...",
-"PROCESSING...",
-"ANALYZING WALLPAPER QUALITY",
-"MEASURING PROCRASTINATION INDEX",
-"SCANNING FOR MEMES",
-"MEMES DETECTED",
-"DANGEROUS AMOUNT OF MEMES",
-"CALCULATING CHAOS LEVEL",
-"LOCATING NEAREST POTATO",
-"CHECKING FOR DRAGON PRESENCE",
-"NO DRAGON DETECTED",
-"VERIFYING THAT 1+1=2",
-"SUCCESS",
-"ANALYZING WIFI VIBES",
-"CHECKING REALITY CONSISTENCY",
-"REALITY STATUS: QUESTIONABLE",
-"GENERATING RANDOM REPORT",
-"REPORT GENERATED",
-"REPORT LOST",
-"SEARCHING FOR REPORT",
-"REPORT STILL LOST",
-"CALCULATING PROBABILITY OF EXISTENCE",
-"EXISTENCE CONFIDENCE: 61%",
-"ANALYZING KEYBOARD ABUSE",
-"CHECKING CAPS LOCK STATUS",
-"MEASURING GAMER ENERGY",
-"SCANNING FOR HOMEWORK",
-"HOMEWORK DETECTED",
-"WARNING: HOMEWORK DETECTED",
-"CRITICAL HOMEWORK LEVELS",
-"ATTEMPTING HOMEWORK DELETION",
-"ACCESS DENIED",
-"MEASURING BOREDOM",
-"BOREDOM LEVEL: MAXIMUM",
-"GENERATING USELESS STATISTICS",
-"USELESS STATISTICS GENERATED",
-"COUNTING ATOMS",
-"TOO MANY ATOMS",
-"CHECKING WHETHER USER IS HUMAN",
-"LIKELY HUMAN",
-"PROBABLY HUMAN",
-"MAYBE HUMAN",
-"UNCERTAIN",
-"RUNNING ADVANCED ANALYSIS",
-"ADVANCED ANALYSIS COMPLETE",
-"ADVANCED ANALYSIS WAS POINTLESS",
-"FINALIZING REPORT"
-
+// より「それっぽく」見せるためのダミーメッセージ群
+const technicalLogs = [
+    "INITIALIZING COLD-BOOT SEQUENCER...",
+    "ESTABLISHING PROXY TUNNEL OVER SSH-2.0...",
+    "BYPASSING LOCAL FIREWALL CORRIDOR...",
+    "INJECTING MALLEABLE PAYLOAD INTO KERNEL MULTIPLEXER...",
+    "DECRYPTING RSA-4096 HANDSHAKE PACKETS...",
+    "TARGET NODE RESPONDING TO ICMP ECHO REQUEST...",
+    "CORRUPTING AUDIT LOG FILES TO EVADE DETECTION...",
+    "OVERRIDING MAIN REGISTRY ACCESS RIGHTS...",
+    "TUNING QUANTUM ENTANGLEMENT OSCILLATOR...",
+    "DUMPING MEMORY SECTOR: 0x7FFF0000 TO 0x7FFFFFFF...",
+    "FETCHING ROOT PRIVILEGES VIA EXPLOIT-CVE-2026-X...",
+    "SPOOFING MAC ADDRESS FOR NETWORK ANONYMITY...",
+    "EXTRACTING VIRTUAL ARCHIVE SYSTEM FILES...",
+    "DELETING TEMPORARY TRACKING COOKIES...",
+    "DECRYPTING BUFFER STREAM...",
+    "SYN APB HANDSHAKE OK",
+    "BYPASSING DOUBLE-FACTOR AUTHENTICATION MATRIX...",
+    "DOWNLOADING ADDITIONAL COGNITIVE SUBROUTINES..."
 ];
 
-function randomHex(len){
-    const chars="0123456789ABCDEF";
-    let s="";
-    for(let i=0;i<len;i++){
-        s+=chars[Math.floor(Math.random()*chars.length)];
+const successLogs = [
+    "[SUCCESS] CONNECTION ESTABLISHED TO CORE_SERVER",
+    "[SUCCESS] EXPLOIT INSTALLED AT PORT 443",
+    "[SUCCESS] ROOT ACCESS GRANTED BY MAIN OS",
+    "[SUCCESS] FIREWALL BYPASSED SUCCESSFULLY"
+];
+
+const alertLogs = [
+    "[ALERT] INTRUSION DETECTION SYSTEM TRIGGERED (EVADED)",
+    "[WARNING] NODE TEMPERATURE EXCEEDS COMFORT ZONE",
+    "[CRITICAL] PARALLEL PROCESSING OVERLOAD IN SECTOR 7",
+    "[WARNING] BOREDOM LEVELS REACHING CRITICAL MASS"
+];
+
+// ランダムな16進数（アドレス用）
+function getHex(len) {
+    const chars = "0123456789ABCDEF";
+    let res = "";
+    for(let i=0; i<len; i++) {
+        res += chars[Math.floor(Math.random() * chars.length)];
     }
-    return s;
+    return res;
 }
 
-function randomLine(){
+// ランダムなIPアドレス風の文字列
+function getFakeIP() {
+    return `${Math.floor(Math.random()*223)+1}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+}
 
-    let text =
-        "[" + randomHex(8) + "] " +
-        messages[Math.floor(Math.random()*messages.length)];
+// 偽の進捗バー
+function getProgressBar() {
+    const percent = Math.floor(Math.random() * 100);
+    const bars = "||||||||||||||||||||".slice(0, Math.floor(percent / 5));
+    const spaces = "....................".slice(0, 20 - Math.floor(percent / 5));
+    return `PROGRESS: [${bars}${spaces}] ${percent}%`;
+}
 
-    output.innerHTML += text + "\n";
+function appendLog() {
+    let logText = "";
+    let cssClass = "";
 
-    if(Math.random() < 0.25){
-        output.innerHTML +=
-        "HASH: " + randomHex(32) + "\n";
+    const rand = Math.random();
+
+    if (rand < 0.6) {
+        // 通常のテクニカルログ
+        logText = `[${getHex(6)}] ${technicalLogs[Math.floor(Math.random() * technicalLogs.length)]}`;
+    } else if (rand < 0.75) {
+        // 成功ログ
+        logText = `[${getHex(6)}] ${successLogs[Math.floor(Math.random() * successLogs.length)]}`;
+        cssClass = "success";
+    } else if (rand < 0.85) {
+        // 警告ログ
+        logText = `[${getHex(6)}] ${alertLogs[Math.floor(Math.random() * alertLogs.length)]}`;
+        cssClass = "alert";
+    } else if (rand < 0.93) {
+        // IPスキャン風ログ
+        logText = `[SCAN] TARGET IP LOCATED -> ${getFakeIP()} (PORT:${Math.floor(Math.random()*65535)})`;
+        cssClass = "warning";
+    } else {
+        // 進捗バー
+        logText = `[TASK] ${getProgressBar()}`;
     }
 
-    if(Math.random() < 0.15){
-        output.innerHTML +=
-        "CONFIDENCE: " +
-        Math.floor(Math.random()*100) +
-        "%\n";
-    }
+    // HTML要素を作って追加（色分けのため）
+    const line = document.createElement("div");
+    if (cssClass) line.className = cssClass;
+    line.textContent = logText;
+    consoleElem.appendChild(line);
 
-    if(output.innerHTML.length > 100000){
-        output.innerHTML =
-        output.innerHTML.slice(30000);
+    // メモリ節約（ログが溜まりすぎたら古いものを消す）
+    if (consoleElem.childNodes.length > 300) {
+        consoleElem.removeChild(consoleElem.firstChild);
     }
 }
 
-setInterval(randomLine,5);
-
-setInterval(()=>{
-    window.scrollTo(
-        0,
-        document.body.scrollHeight
-    );
-},1);
-
-function printInfo(){
-
-    output.innerHTML += "\n";
-    output.innerHTML += "=== BROWSER INFO ===\n";
-
-    output.innerHTML +=
-    "USER AGENT: " +
-    navigator.userAgent + "\n";
-
-    output.innerHTML +=
-    "LANGUAGE: " +
-    navigator.language + "\n";
-
-    output.innerHTML +=
-    "PLATFORM: " +
-    navigator.platform + "\n";
-
-    output.innerHTML +=
-    "SCREEN: " +
-    screen.width +
-    "x" +
-    screen.height +
-    "\n";
-
-    output.innerHTML +=
-    "TIMEZONE: " +
-    Intl.DateTimeFormat()
-    .resolvedOptions()
-    .timeZone +
-    "\n";
-
-    output.innerHTML += "\n";
+// ログ出力の速度（ミリ秒）。ランダムに変えるとさらにリアルに
+function loop() {
+    appendLog();
+    const nextTick = Math.random() < 0.1 ? Math.floor(Math.random() * 400) + 100 : Math.floor(Math.random() * 40) + 5;
+    setTimeout(loop, nextTick);
 }
 
-printInfo();
+// スクロールを最下部に固定
+setInterval(() => {
+    window.scrollTo(0, document.body.scrollHeight);
+}, 10);
 
-setInterval(()=>{
-    document.title =
-    randomHex(6);
-},500);
+// ランダムなタイトルの変更
+setInterval(() => {
+    document.title = `SYS_ERR_0x${getHex(4)}`;
+}, 800);
 
+// スタート
+loop();
 </script>
 
 </body>
