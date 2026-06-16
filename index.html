@@ -1,860 +1,152 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>想定指摘事項と法理解釈に関する対照表</title>
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --accent-color: #bdc3c7;
-            --text-color: #333333;
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --border-color: #e2e8f0;
-            --highlight-color: #fff700;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title></title>
 
-        /* 2. CSSで横スクロールを完全に禁止し、縦方向の操作のみに限定 */
-        html, body {
-            overflow-x: hidden;
-            position: relative;
-            width: 100%;
-            /* 画面のバウンス（引っ張ったときのバネのような挙動）による拡大バグを防ぐ */
-            overscroll-behavior-y: none; 
-            /* ダブルタップズームやピンチズームのブラウザ標準動作をCSSレベルで無効化 */
-            touch-action: pan-y; 
-        }
+<style>
+html,body{
+    margin:0;
+    padding:0;
+    background:#000;
+    color:#00ff00;
+    font-family:Consolas,monospace;
+    overflow-x:hidden;
+}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+#container{
+    padding:20px;
+    white-space:pre-wrap;
+    word-break:break-all;
+    line-height:1.5;
+}
 
-        body {
-            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.7;
-            padding: 40px 20px;
-        }
+.blink{
+    animation:blink 1s infinite;
+}
 
-        .container {
-            max-width: 840px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        header {
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 1.6rem;
-            color: var(--primary-color);
-            font-weight: 700;
-            text-align: center;
-            letter-spacing: 0.05em;
-        }
-
-        .preface {
-            background-color: var(--card-bg);
-            border-left: 4px solid var(--primary-color);
-            padding: 20px;
-            margin-bottom: 30px;
-            border-radius: 0 4px 4px 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            font-size: 0.95rem;
-            text-align: justify;
-        }
-
-        .search-container {
-            position: sticky;
-            top: 0;
-            background-color: var(--bg-color);
-            padding: 15px 0;
-            margin-bottom: 20px;
-            z-index: 100;
-            border-bottom: 1px dashed var(--accent-color);
-        }
-
-        #searchInput {
-            width: 100%;
-            padding: 12px 20px;
-            font-size: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        #searchInput:focus {
-            border-color: var(--primary-color);
-        }
-
-        mark {
-            background-color: var(--highlight-color);
-            color: inherit;
-            padding: 0 2px;
-            border-radius: 2px;
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            color: var(--primary-color);
-            margin: 35px 0 15px 0;
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--accent-color);
-            letter-spacing: 0.03em;
-        }
-
-        .qa-item {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            margin-bottom: 12px;
-            overflow: hidden;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-            transition: box-shadow 0.2s ease;
-        }
-
-        .qa-item:hover {
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .qa-trigger {
-            width: 100%;
-            background: none;
-            border: none;
-            outline: none;
-            text-align: left;
-            padding: 18px 50px 18px 20px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--text-color);
-            cursor: pointer;
-            position: relative;
-            display: flex;
-            align-items: flex-start;
-            transition: background-color 0.2s ease;
-        }
-
-        .qa-trigger:hover {
-            background-color: #fafbfc;
-        }
-
-        .qa-trigger::after {
-            content: "↓";
-            position: absolute;
-            right: 20px;
-            top: 18px;
-            font-size: 1.1rem;
-            color: var(--primary-color);
-            transition: transform 0.2s ease;
-            font-weight: normal;
-        }
-
-        .qa-item.active .qa-trigger::after {
-            content: "↑";
-        }
-
-        .qa-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s cubic-bezier(0, 1, 0, 1);
-            background-color: #fcfdfe;
-        }
-
-        .qa-item.active .qa-content {
-            max-height: 2000px; 
-            transition: max-height 0.3s cubic-bezier(1, 0, 1, 0);
-        }
-
-        .answer-body {
-            padding: 20px;
-            border-top: 1px solid var(--border-color);
-            font-size: 0.95rem;
-            color: #4a5568;
-            text-align: justify;
-        }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 20px 12px;
-            }
-            h1 {
-                font-size: 1.3rem;
-            }
-            .section-title {
-                font-size: 1.05rem;
-            }
-            .qa-trigger {
-                font-size: 0.9rem;
-                padding: 15px 40px 15px 15px;
-            }
-            .qa-trigger::after {
-                right: 15px;
-                top: 15px;
-            }
-            .answer-body {
-                padding: 15px;
-                font-size: 0.9rem;
-            }
-        }
-    </style>
+@keyframes blink{
+    50%{opacity:0;}
+}
+</style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>貴殿より想定されるご指摘事項とそれに対する弊方の法理解釈に関する対照表</h1>
-    </header>
-
-    <div class="preface">
-        前文<br>
-        予めお含みおきいただきたいのは、本書面が貴殿の情動や人格を排撃する性質のものではないという点です。言語的コミュニケーションが孕む多義性と、それによる解釈の不一致がもたらす不合理な紛争を回避すべく、弊方の法理的帰結と認識の平仄をあらかじめ客観的に提示し、共有するための合理的一助として、以下にその詳細を記述いたします。
-    </div>
-
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="キーワードを入力して検索...">
-    </div>
-
-
-    <h2 class="section-title">### Ⅰ．親の権力・家族内の序列・家父長的な支配に関する事項</h2>
-    
-    <div class="qa-item">
-        <button class="qa-trigger">Q1. 「親が『返さない』と言ったら返さない。この家では親の決定が絶対だ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A1.** 家庭内のパワーバランスや独自の序列がどうであれ、日本国内においては等しく「日本国憲法」および「民法」をはじめとする実体法が最高法規として適用されます。公的身分証明書の帰属を定めた国家の法律（マイナンバー法）を無視し、私的な「親の絶対権」を優先させる主張は、法治国家の原則に対する重大な挑戦であり、法的な正当化根拠はゼロです。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q2. 「まだ一人前でもない子供のくせに、親と対等に争えると思うな」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A2.** 法律は年齢に関わらず、すべての市民に平等に適用されます。満15歳に達した通知人には、自己の公的権利を主張する完全な資格（手続能力）が法的に認められており、家族内の「格付け」や「上下関係」を理由に正当な法的権利の行使を制限されるいわれはありません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q3. 「親の言うことを聞けないような奴は、この家を今すぐ出て行け」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A3.** 親が未成熟の子を合理的な理由なく住居から放逐する行為は、民法第820条の「監護教育義務」の著しい不履行であり、場合によっては刑法第218条の「保護責任者遺棄罪」に抵触し得る違法行為です。自己の違法な占有行為（カード留置）を正当化するために、別の違法行為（放逐）を示唆して脅迫することは失当です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q4. 「父親ではなく、母親である私が管理しているのだから文句を言うな」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A4.** 父親が世帯の主たる経済的支え（大黒柱）であるか否か、あるいは誰が管理しているかに関わらず、本件カードの正当な利用・管理権限は名義人である通知人本人に帰属します。親族間における役割分担や独自の権力構造は、通知人に対する権利侵害を免責する理由になりません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q5. 「親には子供を指導する『懲戒権』がある。態度が悪いから没収しているんだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A5.** 近年の民法改正（民法第822条の削除および第821条等の新設）により、親権の行使における「子の利害の尊重」と「体罰や心身の健全な発達に有害な影響を及ぼす言動の禁止」が明文化されています。正当な権利行使を「反抗」とみなして公的身分証明書を没収する行為は、教育的指導の範囲を逸脱した不当な権利侵害（精神的虐待）です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q6. 「親に向かってこんな生意気な態度をとるなら、一切の小遣いや娯楽を禁止する」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A6.** 報復として私的な不利益を課す言動は、被通知人が「客観的・法的な反論が不可能であること」を自ら証明しているようなものです。そのような強圧的な実力行使は、紛争の本質（本件カードの不法占有）を何ら解決せず、むしろ被通知人の社会的・法的な非を深める結果にしかなり得ません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q7. 「お前がどれだけ法律を並べ立てても、私が『ダメだ』と言えばそれまでだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A7.** 個人の主観的な「ダメだ」という意思表示は、法律上の「抗弁（反論の根拠）」にはなり得ません。司法の場や公的な議論において求められるのは、「いかなる実体法に基づき、どのような正当な権原があって占有を継続しているのか」という客観的証拠であり、個人の感情的な拒絶は通用しません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q8. 「家族の調和を乱すような身勝手な主張は、親として断じて許さない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A8.** 「家族の調和」という抽象的な概念を盾に、特定の個人の正当な権利（公的身分証明書の所持）を一方的に圧殺すること自体が、不調和の根本原因です。真の調和は、互いの法的権利と人格を尊重することからしか生まれません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q9. 「親が子供の持ち物をどう扱おうが、それは家庭内の自由（プライバシー）だ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A9.** 家庭内の自由（法の不介入）が認められるのは、それが平穏かつ適法に運営されている場合に限られます。明確な権利侵害が発生し、当事者から返還要求が出されている以上、それはもはや「家庭内の自由」の域を超えた「民事上の紛争」であり、法の介入を免れることはできません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q10. 「そんなに親を敵に回したいなら、今後一切親を頼るな」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A10.** 通知人は正当な権利の回復を求めているだけであり、親を「敵に回す」意図はありません。権利の主張を「親への敵対行為」と飛躍させ、関係性の断絶を脅しに使う姿勢は、極めて非論理的であり理性的議論を拒絶するものです。</div>
-        </div>
-    </div>
-
-    <h2 class="section-title">### Ⅱ．過去の養育・金銭的恩義の強調に関する事項</h2>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q11. 「これまで誰のおかげでご飯が食べられて、学校に行けていると思っているんだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A11.** 親が子に食事を与え、教育を受けさせることは、民法第877条第1項に基づく「直系血族間の扶養義務」の履行であり、親としての当然の法的義務です。これを「過去の恩義（債務）」として持ち出し、子の現在および将来の正当な権利を侵害するための相殺材料（人質）にすることは、法理上絶対に認められません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q12. 「受験にかかった費用やこれまでの学費を全て返してから法律論を言え」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A12.** 子の養育費や受験費用は、親が自己の監護教育義務（民法第820条）に基づき自発的に支出したものであり、子に対する「貸付金（借金）」ではありません。したがって、子にその返還義務は存在せず、学費の支出を理由に本件カードの不法占有を正当化することは論理のすり替えです。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q13. 「育ててもらった恩を仇で返すような奴に、カードを返す必要はない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A13.** 「恩」や「情義」といった道徳的・主観的概念と、公的身分証明書の管理権限という「実体法上の権利義務関係」は、明確に区別（峻別）されなければなりません。道徳的な不満は、違法な占有状態を適法化する「法律上の原因（権原）」にはなり得ません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q14. 「私がお前を生んで育ててやったんだから、お前の身の回りのものは全て私の所有物だ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A14.** 出生および養育の事実は、子の「人格の独立性」を否定する根拠にはなりません。現代法において、子は親の所有物（奴隷）ではなく、独立した権利の主体（権利能力者）です。国から通知人個人に交付された本件カードは通知人に帰属するものであり、被通知人の所有物ではありません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q15. 「親に感謝の気持ちがない奴の言うことなど、聞く耳を持たない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A15.** 被通知人が「聞く耳を持つか否か」に関わらず、不法に占有を継続しているという客観的事実およびそれに伴う違法性（民法第709条の不法行為責任）は現在進行形で積み重なっています。主観的な感情を理由に法的義務を拒絶することはできません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q16. 「お前が病気になったとき、誰が看病して守ってきたと思っている」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A16.** 過去の監護行為の事実は深く認識していますが、その過去の善行は「現在の違法行為（公的身分証明書の不法留置）」を免責・適法化する免責事由にはなり得ません。過去の恩義と現在の権利侵害は、法的に全くの別問題です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q17. 「そんなに親をコケにするなら、これまでの服や教科書も全て返せ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A17.** 既に通知人に提供された生活必需品や教育資材（衣服や教科書）は、扶養義務の履行として給付されたものであり、その所有権は通知人に移転しています。これらを「返せ」と要求すること自体が、扶養義務の事実上の放棄であり、法的根拠のない理不尽な実力行使です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q18. 「親を敬うという気持ち、親孝行が欠如している。だから返さない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A18.** 「親孝行」は道徳上の徳目であり、法律上の強制力を持つ義務ではありません。道徳的規範の不満足を理由に、通知人の実体法上の権利（マイナンバーカードの所持）を侵害することは、法秩序の逆転であり到底容認されません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q19. 「お前が苦労して合格した学校の学費を払っているのは親だ。その恩があるだろう」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A19.** 私学への進学を選択し、その合格のために通知人が努力し、親が学費を支援したという経緯は、親子共同の歴史です。しかし、その「学費の支払い」という事実を武器に、通知人の個人の人格権や身分証明書を支配してよいという法的特権は、親権のどこを探しても存在しません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q20. 「恩着せがましいと言うなら、今すぐ自分で稼いで生活してみせろ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A20.** 満15歳の中学生に対し、「自分で稼いで生活しろ」と要求することは、労働基準法等の社会規範や民法上の扶養義務（生活保持義務）に反する無理難題の押し付けであり、親としての義務放棄（ネグレクト）を示唆するものです。このような極論は議論の解決を放棄している証拠です。</div>
-        </div>
-    </div>
-
-    <h2 class="section-title">### Ⅲ．中高一貫校の退学強要・教育機会の制限に関する事項</h2>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q21. 「学校を辞めてもらう。中3だからせいぜい高校受験を頑張れよ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A21.** 通知人は多大なる努力（受験）を経て現在の中高一貫校への入学資格を正成に取得しており、その在学契約に基づく教育を受ける権利は、子の福祉において保護されるべき核心的利益です。大黒柱であり世帯の主要な経済的支えである父親の明確な同意（合理的な意思決定）もなく、被通知人の独断、あるいは感情的・一時的な判断によって退学を強要することは、親権（民法第820条の監護教育権）の目的たる「子の利益」に著しく反する裁量の濫用であり、法的に無効かつ不法行為を構成します。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q22. 「全員参加のニュージーランド研修には行くな。100万浮いて助かる」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A22.** 当該研修は学校教育課程において「ほとんどの生徒が参加する」重要かつ有機的な教育機会であり、これを合理的な理由なく剥奪することは、通知人の教育的・社会的成長の機会を不当に阻害する「経済的虐待」ないし「教育ネグレクト」の性質を帯びる行為です。「100万円が浮く」という被通知人側の主観的な経済的利得は、通知人が受けるべき教育上の不利益（回復困難な機会損失）と比較して著しく均衡を欠いており、監護権の適切な行使として是認される余地はありません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q23. 「教育方針を決めるのは親の自由（親権）だから、学校を辞めさせようが研修に行かせまいが親の勝手だ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A23.** 親権は「支配権」ではなく、子の基本的人権と福祉を擁護するための「信託された権限」に過ぎません。すでに満15歳に達し、中高一貫校での就学継続という自己の将来に関わる重大な判断能力を有する通知人の意思を排斥し、かつ世帯主（父親）の合意も得ないまま教育機会を破壊する行為は、親権の包括的濫用として司法判断において厳しく否定される対象です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q24. 「私学の学費や研修費を払っている（あるいは管理している）のは私なのだから、その使途を拒絶する権利がある」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A24.** 既に開始されている教育課程の継続に必要な費用や行事への参加は、未成熟子に対する扶養義務（生活保持義務）および適切な監護教育の義務に内包されるべきものです。一度選択し、本人が努力して獲得した教育環境を、合理的な困窮の立証（破産手続等）もないまま感情的な理由で一方的に停止することは、扶養義務の不履行（違法行為）に該当します。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q25. 「お前がそんな態度（カードの返還請求等）を続けるなら、本当に学校を辞めさせる手続をとる」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A25.** 正当な権利（公的身分証明書の返還）を行使しようとする通知人に対し、退学処分という不利益を手段として脅迫・恫喝することは、民法上の不法行為責任をさらに重くする事情（不当な威迫）にしかなり得ません。そのような実力行使を示唆すること自体、被通知人の占有継続に正当な理由がないことを自ら露呈しています。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q26. 「大黒柱の父親だって、私が『退学させる』と言えば最終的には同意するはずだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A26.** それは被通知人の主観的な予測（仮定の事実）に過ぎません。世帯の主要な経済的支えである父親が、合理的な経済的理由（家計の破産等）もないまま、我が子のこれまでの努力の成果たる中高一貫校の在学資格を無下に剥奪することに無条件で同意するというのは経験則上極めて不自然であり、被通知人の孤立した暴論と評価せざるを得ません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q27. 「100万円の研修費を払わないだけで虐待呼ばわりされる筋合いはない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A27.** 単なる一旅行の制限ではなく、「学校教育のカリキュラムとして組み込まれ、同期生のほとんどが参加する重要な研修」からの排除は、通知人に対する著しい精神的苦痛と社会的孤立をもたらす行為です。これを経済的合理性（100万円浮く）という自己都合のみで強行する姿勢は、児童福祉の観点からも明確に不適切（ネグレクト的アプローチ）とみなされます。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q28. 「中高一貫を辞めても、公立高校へ行けば済む話だ。教育の機会は奪っていない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A28.** 通知人が受験という多大なコスト（時間・精神・努力）を払って獲得した「中高一貫校における6年間の計画的教育環境」という個別具体的な利益を不当に破壊する行為そのものが、回復困難な権利侵害です。「代替手段（公立）」の存在を言い訳に、現在ある幸福追求の権利を破壊することは許されません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q29. 「親をそこまで追い詰めるなら、学費の出どころを止める。それだけだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A29.** 学費の給付を人質にとり、子の法的な自己決定権や身分証明書の奪還をあきらめさせようとする行為は、優越的地位の濫用であり、扶養義務（生活保持義務）の意図的な放棄です。このような恫喝的アプローチは、司法手続きにおいて被通知人の「監護権者としての不適格性」を際立たせる証拠となります。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q30. 「お前のために中高一貫に入れたのに、こんな親不孝な子供に育つとは思わなかった」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A30.** 中高一貫校への入学は通知人の努力の成果であり、親の所有物になるための契約ではありません。正当な法的権利を主張することを「親不孝」と呼び、教育機会の剥奪という罰を与える行為は、親権の歪んだ行使（感情的報復）に他なりません。</div>
-        </div>
-    </div>
-
-    <h2 class="section-title">### Ⅳ．満15歳の年齢到達に伴う公法上の手続能力に関する事項</h2>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q31. 「まだ15歳で未成年なのだから、親が身分証明書を管理するのは当然ではないか」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A31.** 民法上の未成年者であっても、満15歳という年齢は行政手続法上、単独でマイナンバーカードの申請・受領を行う能力（手続能力）が明文で認められる画期です。監護権（民法第820条）は「子の利益」のためにのみ行使が許される義務的権利であり、本人が明示的に返還を求めている公的身分証明書を、親の主観的安心感のために一律に剥奪することは親権の濫用（裁量権の逸脱）に該当し、法的に正当化されません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q32. 「成人（18歳）になるまでは、何かあったときに親が責任を負うのだから管理権は親にある」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A32.** 不法行為等の特殊な例外を除き、満15歳に達した者には自己の行動に対する弁識能力（意思能力）が認められます。親が将来的な責任を懸念することと、現在進行形で本人の公的身分証明書を不法に占有し、その社会的権利行使を阻害することは別問題です。責任論を口実にした権利侵害は、手段としての相当性を著しく欠いています。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q33. 「世間の一般的な家庭でも、子供のマイナンバーカードは親が保管している」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A33.** それは「子が親に保管を事実上委託している（黙示の寄託契約）」または「紛争が生じていない」家庭の事実に過ぎません。本件においては、カード名義人である通知人が明確に「委託の解除」と「返還要求」を意思表示しているため、一般的な家庭の慣行を根拠に不法占有を継続することは法律上不可能です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q34. 「まだ子供で管理能力がないから、紛失や悪用のリスクを避けるために返さない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A34.** 満15歳に達した通知人に対し、具体的な紛失の事実もない段階から「管理能力がない」と一方的に決めつけ、身分証明書を没収することは合理的裁量の範囲を超えています。紛失リスクへの対策は、適切な管理方法の指導等によってなされるべきであり、カード自体の不法占有という極端な手段は比例原則に違反します。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q35. 「お前はまだ15歳だから、マイナンバー法上の『代理人』として親が持っている」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A35.** マイナンバー法において、満15歳以上の者については法定代理人の当然の代理権行使は制限され、本人の単独行為が優先されます。本人が明示的に代理権の行使を拒絶（返還請求）している以上、被通知人に代理人としての占有権原は認められません。</div>
-        </div>
-    </div>
-
-    <h2 class="section-title">### Ⅴ．父親の株式投資・経済的リスクの因果関係に関する事項</h2>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q36. 「父親がこのカードを使って勝手に株取引をしたら、家計が破綻するかもしれない。それを防ぐためだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A36.** 金融商品取引法および関係諸規約上、他人の身分証明書を物理的に所持しているだけで口座を勝手に開設したり、取引を執行したりすることは不可能です。仮に父親が名義冒用等の違法行為を行う懸念があるならば、それは父親に対する法的措置や警告、あるいは金融機関への一括照会等によって対処すべきであり、無関係な通知人のカードを留置する理由にはなりません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q37. 「お前（通知人）が父親にそそのかされてカードを渡してしまうリスクがある」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A37.** それは未だ発生していない将来の危険に対する主観的な予断（仮定の事実）に過ぎません。満15歳に達した通知人は、カードの重要性を理解しており、第三者への安易な譲渡を行わない意思を明確にしています。抽象的な危険性を理由に、現在の正当な権利行使を包括的に制限することは法理上許されません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q38. 「家計が苦しいのはお前も知っているだろう。家族を守るための防衛策だ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A38.** 家計の困窮や家族内の経済的危殆は、民法上の扶養や資産管理の枠組みで解決されるべき課題です。通知人の個人のアイデンティティを公証する固有の身分証明書を人質のように留置することが、家計防衛の手段として法的関連性（相当因果関係）を有することはあり得ません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q39. 「父親がカードの番号（個人番号）を盗み見て悪用したらどうするんだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A39.** 個人番号の悪用が懸念されるのであれば、マイナンバー法に基づき、市区町村長に対して「個人番号の漏洩・悪用の恐れ」を理由とした個人番号の変更申請手続を執るべきです。カード自体を被通知人が隠匿・留置することは、番号の漏洩防止に対する直接的かつ法的に正しい解決策になっていません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q40. 「もし父親が勝手に取引をして借金ができたら、お前が責任を取れるのか」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A40.** 他人が無断で行った法律行為は「無権代理」であり、通知人が追認しない限り、通知人にその効果（借金等）が帰属することはありません。法的なリスク管理の誤解に基づき、通知人の適法な返還請求を拒絶することは失当です。</div>
-        </div>
-    </div>
-
-    <h2 class="section-title">### Ⅵ．実害・不利益の存否、および代替手段に関する事項</h2>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q41. 「日常生活でマイナンバーカードがなくて困ることなんて、15歳にはないはずだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A41.** 行政手続のオンライン化（マイナポータル利用）、アルバイト等を開始する際の本人確認およびマイナンバー提出、医療機関におけるマイナ保険証の利用など、15歳であっても社会生活上、本件カードを必要とする局面は多岐にわたり、これらは現に制限されています。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q42. 「必要なときだけ親が付き添って提示すればいいのだから、手元になくても困らないだろう」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A42.** 本件カードの利用権限は通知人本人に専属しており、利用の都度、被通知人の許諾や同行を必要とすること自体が、通知人の自由な自己決定権および移動・手続の自由に対する不当な制約（権利侵害）です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q43. 「保険証や住民票なら別の方法で証明できるから、このカードは不要だ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A43.** どの身分証明書を選択して利用するかは、保有者である通知人の自由な裁量に委ねられています。他の代替手段が存在することは、被通知人が本件カードを不法に占有し続けることを正当化する免責事由には一切なり得ません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q44. 「カードがないと困るという具体的な証拠を見せろ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A44.** 本件カードは、国から通知人に対して交付された固有の客体であり、通知人は「占有権原」に基づいて返還を求めています。返還を求めるにあたり「困っている証拠」を提示する法的義務は通知人にはなく、逆に被通知人が「返さないでよいとする適法な権原」を立証する必要があります。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q45. 「お前が勝手に何か怪しい契約をしようとしているから、カードを取り戻したいだけではないのか」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A45.** それは根拠のない不当な邪推（名誉毀損的予断）です。仮に通知人が何らかの契約を行うとしても、満15歳に達した者の法律行為には民法上の未成年者取消権（民法第5条）等の保護規律が作動します。身分証明書の物理的剥奪という違法な手段で先制的に行動の自由を縛ることは許されません。</div>
-        </div>
-    </div>
-
-    <h2 class="section-title">### Ⅶ．占有の違法性、および私法上の責任に関する事項</h2>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q46. 「私は盗んだわけではない。親として預かっているだけだから不法占有ではない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A46.** 当初の占有開始が不法でなくとも、権利者である通知人から「返還要求（委託解除の意思表示）」が明示的になされた時点以降、正当な理由なく占有を継続する行為は、法律上「民法第180条以下における占有権原なき占有」となり、客観的に不法占有と同等の違法性を帯びることになります。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q47. 「家族の間で『不法占有』だの『損害賠償』だの、法律を持ち出すのはおかしい」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A47.** 家庭内であっても個人の権利や人格権は尊重されるべきであり、親族間であることを理由に一切の違法行為が免罪されるわけではありません（法治国家の原則）。感情論で法を排除しようとする姿勢こそが、問題の合法的解決を阻害しています。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q48. 「嫌なら警察でも裁判所でもどこにでも訴えればいい、どうせ身内のことだから動かない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A48.** 公的機関が介入するか否かという「事実上の実効性」の問題と、被通知人の行為が「法的に違法であるか否か」という評価の問題は完全に別次元です。司法が動かないことを奇貨として違法状態を居直る態度は、法の支配を著しく軽視するものであり、違法性の悪質性を自ら立証するものです。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q49. 「そんなに法律に頼るのなら私を納得させるだけの法律の条文を言ってみろ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A49.** 本通知書において、マイナンバー法第2条、第16条、第17条、および民法第180条（占有）、第709条（不法行為）、第820条（監護権の限界）を明確に提示しています。これ以上の法理的説明は不要であり、速やかに現物を返還するか、これに対抗し得る「実体法上の条項」を書面で回答されたい。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q50. 「感情的になって返さないと言っているわけではない。理性的に考えて返さない方が安全だからだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A50.** 被通知人が「安全」と称する状態は、通知人の正当な権利を犠牲にした上での、被通知人の主観的な安心感に過ぎません。客観的な法秩序においては、権利者の明示の意思に反した身分証明書の留置は「危険の予防」ではなく「現実の権利侵害」と定義されます。</div>
-        </div>
-    </div>
-
-    <h2 class="section-title">### Ⅷ．公的機関の介入、および解決手段に関する事項</h2>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q51. 「過去に公的機関に相談すると言ったのは、今忙しくて準備をしているからだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A51.** 「相談の準備」という主観的内部事情は、不法な占有継続を正当化する適法な猶予期間にはなり得ません。具体的な申立て（家庭裁判所の調停等）がなされていない以上、現在の状態は単なる「実力行使による留置」であり、自力救済の禁止原則に抵触します。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q52. 「お前がそんな態度なら、こちらから児童相談所や学校に相談してやる」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A52.** どうぞご自由に相談されたい。満15歳に達した生徒が「自分のマイナンバーカードを親が返してくれない」「大黒柱の同意もなく退学させようとする」「学校の全員研修への参加を不当に制限される」と公的機関に認知された場合、公的機関が親の行為を正当と判断する蓋然性は皆無であり、むしろ被通知人の過剰な支配・不当な権利制限（不適切な養育環境）が指摘されるリスクがあります。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q53. 「家族会議を開いて、みんなが納得してから返還するか決める」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A53.** 本件カードの管理権限は通知人個人に一身専属的に帰属しており、家族の多数決や合意（家族会議の承認）を返還の条件とすることは法理上不可能です。通知人の単独の返還請求のみによって、被通知人の返還義務は即時に発生しています。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q54. 「第三者（弁護士や公的機関）を交えて話し合わなければ返さない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A54.** 第三者の介入を希望するのであれば、被通知人の費用と責任において速やかに法律専門家を手配されたい。ただし、第三者との話し合いの予定があるという一事をもって、現在の違法な占有状態を継続してよいとする理由にはなりません。話し合いに先立ち、まず現物を返還するのが法秩序の基本です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q55. 「お前のために良かれと思ってやっているのに、なぜその優しさが分からないのか」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A55.** 主観的な「善意」や「優しさ」は、客観的な不法行為責任を阻却する理由にはなりません。法の世界においては、結果として相手の正当な権利（および教育機会）を侵害しているかどうかが全てであり、動機の純粋さは免責事由になり得ません。</div>
-        </div>
-    </div>
-
-    <h2 class="section-title">### Ⅸ．現物の状態、および実務上の対抗措置に関する事項</h2>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q56. 「そんなに欲しいなら、自分で紛失届を出して再発行すればいいだろう」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A56.** 紛失していないにもかかわらず虚偽の紛失届を提出することは、行政手続上の不正行為を強いるものであり容認できません。また、再発行にかかる手数料や手続的負荷（時間的損害）を通知人に負担させること自体が、被通知人の占有留置行為から派生した不法行為責任（損害賠償の対象）を構成します。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q57. 「カードは私が安全な場所に隠したから、お前が探しても無駄だ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A57.** 本件カードの所在を秘匿し、通知人による接近を物理的に遮断する行為は、被通知人が「排他的かつ強固な占有支配」を行っている証拠であり、民法上の不法行為（占有侵害）の違法性をより強固に立証する自白に他なりません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q58. 「カードは捨てた。もう手元にないから返せない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A58.** 仮に破棄したのであれば、他人の重要な公的身分証明書を滅失させたことになり、マイナンバー法違反（不当な破棄）および民法上の不法行為（器物損壊・財産権侵害）として、再発行費用およびそれに伴う一切の損害、精神的慰謝料の賠償義務が被通知人に直ちに発生します。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q59. 「お前が冷静になって、親に感謝の言葉を述べるまでは絶対に返さない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A59.** 返還義務の履行に対し、通知人の「態度」や「精神的屈服」を条件（引換給付）として付すことは法律上認められません。同時履行的抗弁権のような正当な対抗要件がない以上、無条件での即時返還が義務付けられています。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q60. 「お前がこのカードを何に使うつもりなのか、具体的な用途を白状しろ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A60.** 自己の身分証明書を所持・保管するにあたり、その用途を第三者に説明する義務は存在しません。名義人本人が「自分の手元に置いておく」こと自体が本来の正しい状態であり、用途の不開示を理由に返還を拒絶することは違法です。</div>
-        </div>
-    </div>
-
-    <h2 class="section-title">### Ⅹ．高度な法理的攻防、および解釈の峻別に関する事項</h2>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q61. 「私はカードの『所有権』を主張しているのではない。一時的な『占有管理権』を行使しているだけだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A61.** その「一時的」という文言に客観的期限が設定されておらず、本人の返還請求を拒絶している以上、実態は「永久的な排他占有」と同義です。占有を正当化する権原（正当な理由）がない以上、名称をどう変えようとも違法な留置です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q62. 「父親がお前の名義で借金をした場合、このカードがない方が被害を食い止められる」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A62.** 前述の通り、他人が無断で行った契約は無効です。また、犯罪防止のために特定の個人の権利や教育機会を恒久的に犠牲にするというアプローチは、私的制裁（自力救済）の禁止に抵触し、法秩序として認められません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q63. 「お前が将来、このカードを悪用して犯罪に巻き込まれないという保証がどこにある」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A63.** 将来の犯罪遭遇の抽象的可能性を理由に、現時点での個人の基本的人権や手続能力を剥奪することは、法治国家における「自由の原則」に対する重大な侵害であり、到底容認され得ない極論です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q64. 「こんな手紙を寄こすような反抗的な態度を改めるまで、教育の一環として返さない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A64.** 子の正当な法的権利（および就学の継続）を「反抗」とみなして制裁を加えることは、教育の範囲を逸脱した不当な権利侵害にあたり、不当です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q65. 「カードを返したら、お前がすぐに父親に渡してしまうかもしれないから、条件付きでしか返さない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A65.** 不当な条件（停止条件等）を付して返還を遅延させることは、返還債務の履行遅滞（民法第412条）を構成します。何らの抗弁権もない以上、通知人は「無条件かつ即時の完全給付」を要求する権利があります。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q66. 「私は母親（または父親）として、お前のためにしているだけだ」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A66.** 主観的な感情の有無と、客観的な不法行為責任（および教育機会の剥奪という実害）の成否は法理上完全に峻別されます。愛を動機とした権利侵害であっても、侵害されている通知人の実生活上・学業上の不利益という事実は何ら軽減されません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q67. 「お前が勝手にスマホの契約や口座開設をして、高額な請求が来たら親が払わされる」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A67.** 未成年者が親権者の同意なく行った不利益な契約は、民法第5条に基づき原則として「取消し」が可能です。親が支払いを強制されるわけではなく、身分証明書を取り上げるという過剰防衛を正当化する理由にはなりません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q68. 「役所に確認したら『親が持っていても構わない』と言われた」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A68.** 行政窓口の一般的な回答は、「紛争が生じていない平穏な親子関係において、合意の上で親が保管している状態」を念頭に置いたものに過ぎません。本件のように、明確な返還拒絶紛争が発生している事態において、親の不法占有を追認するような法的見解を行政機関が示すことはあり得ません。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q69. 「このカードは国のものであって、お前の所有物ではないから返す必要はない」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A69.** 確かにカードの所有権は国に帰属（マイナンバー法上の規律）しますが、国から「交付を受け、これを管理・利用する正当な占有権原」は名義人である通知人に専属しています。被通知人は国ではない以上、国所有を理由に占有を正当化することは論理の破綻です。</div>
-        </div>
-    </div>
-
-    <div class="qa-item">
-        <button class="qa-trigger">Q70. 「このような屁理屈を並べて、親をバカにしているのか」</button>
-        <div class="qa-content">
-            <div class="answer-body">**A70.** 本通知および想定問答は、すべて現行の日本法（民法・マイナンバー法・行政法規）および確立された法解釈に依拠した「正当なリーガル・ロジック（法的論理）」です。これを「屁理屈」と断じる姿勢こそが、客観的・理性的議論を拒絶する主観的感情論の証左であり、被通知人に非があることを自ら認めるものに他なりません。</div>
-        </div>
-    </div>
-    
-    </div>
+<div id="container">
+<span class="blink">█</span>
+</div>
 
 <script>
-    // 3. リロード時に強制的に等倍(100%)＆最上部にリセットする
-    if (history.scrollRestoration) {
-        history.scrollRestoration = 'manual';
-    }
-    window.scrollTo(0, 0);
 
-    // 4. スクロール中も含め、2本以上の指での操作（ピンチズーム）を「何があっても」強制拒否
-    document.addEventListener('touchstart', function (event) {
-        if (event.touches.length > 1) {
-            event.preventDefault(); // 2本以上の指が触れた瞬間に入力を無効化
-        }
-    }, { passive: false });
+const out = document.getElementById("container");
 
-    document.addEventListener('touchmove', function (event) {
-        // スクロール中で指が動いている時でも、2本以上の指の動き、または拡大（scale）の兆候があれば即座に遮断
-        if (event.touches.length > 1 || (event.scale !== undefined && event.scale !== 1)) {
-            event.preventDefault();
-        }
-    }, { passive: false });
+function write(text){
+    out.innerHTML += text + "\n";
+}
 
-    // 5. ダブルタップによる自動ズームも完全に排除
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function (event) {
-        const now = (new Date()).getTime();
-        if (now - lastTouchEnd <= 300) {
-            event.preventDefault(); // 300ミリ秒以内の連続タップを無効化
-        }
-        lastTouchEnd = now;
-    }, false);
+write("Initializing...");
+write("");
 
+const data = {
+    "User Agent": navigator.userAgent,
+    "Platform": navigator.platform,
+    "Language": navigator.language,
+    "Languages": navigator.languages.join(", "),
+    "Cookies Enabled": navigator.cookieEnabled,
+    "Online": navigator.onLine,
+    "Hardware Concurrency": navigator.hardwareConcurrency,
+    "Device Memory (GB)": navigator.deviceMemory || "Unknown",
+    "Max Touch Points": navigator.maxTouchPoints,
+    "Timezone": Intl.DateTimeFormat().resolvedOptions().timeZone,
+    "Screen Width": screen.width,
+    "Screen Height": screen.height,
+    "Available Width": screen.availWidth,
+    "Available Height": screen.availHeight,
+    "Color Depth": screen.colorDepth,
+    "Pixel Depth": screen.pixelDepth,
+    "Inner Width": window.innerWidth,
+    "Inner Height": window.innerHeight,
+    "Outer Width": window.outerWidth,
+    "Outer Height": window.outerHeight,
+    "Referrer": document.referrer || "(none)",
+    "URL": location.href
+};
 
-    document.addEventListener("DOMContentLoaded", () => {
-        const searchInput = document.getElementById('searchInput');
-        const qaItems = document.querySelectorAll('.qa-item');
-        const sectionTitles = document.querySelectorAll('.section-title');
+for(const key in data){
+    write(key + ": " + data[key]);
+}
 
-        qaItems.forEach(item => {
-            const q = item.querySelector('.qa-trigger');
-            const a = item.querySelector('.answer-body');
-            
-            const cleanText = (element) => {
-                return element.textContent.replace(/[#*]/g, '');
-            };
-            
-            q.dataset.originalText = cleanText(q);
-            a.dataset.originalText = cleanText(a);
-            
-            q.textContent = q.dataset.originalText;
-            a.textContent = a.dataset.originalText;
-        });
+write("");
 
-        sectionTitles.forEach(title => {
-            title.textContent = title.textContent.replace(/[#*]/g, '');
-        });
+navigator.storage?.estimate?.().then(storage=>{
+    write("Storage Usage: " + storage.usage + " bytes");
+    write("Storage Quota: " + storage.quota + " bytes");
+});
 
-        function escapeRegExp(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
+if(navigator.connection){
+    write("Connection Type: " + navigator.connection.effectiveType);
+    write("Downlink: " + navigator.connection.downlink + " Mbps");
+    write("RTT: " + navigator.connection.rtt + " ms");
+}
 
-        searchInput.addEventListener('input', function() {
-            const keyword = this.value.trim();
-            
-            // 検索中もスクロールはトップに固定
-            window.scrollTo(0, 0);
-
-            qaItems.forEach(item => {
-                const q = item.querySelector('.qa-trigger');
-                const a = item.querySelector('.answer-body');
-                const content = item.querySelector('.qa-content');
-                
-                if (keyword === '') {
-                    item.style.display = 'block';
-                    q.textContent = q.dataset.originalText;
-                    a.textContent = a.dataset.originalText;
-                    item.classList.remove('active');
-                    content.style.maxHeight = null;
-                } else {
-                    const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
-                    const qMatch = q.dataset.originalText.match(regex);
-                    const aMatch = a.dataset.originalText.match(regex);
-
-                    if (qMatch || aMatch) {
-                        item.style.display = 'block';
-                        item.classList.add('active');
-                        content.style.maxHeight = '2000px';
-                        
-                        q.innerHTML = q.dataset.originalText.replace(regex, '<mark>$1</mark>');
-                        a.innerHTML = a.dataset.originalText.replace(regex, '<mark>$1</mark>');
-                    } else {
-                        item.style.display = 'none';
-                        item.classList.remove('active');
-                    }
-                }
-            });
-        });
-
-        document.querySelectorAll('.qa-trigger').forEach(trigger => {
-            trigger.addEventListener('click', () => {
-                const item = trigger.parentElement;
-                const content = item.querySelector('.qa-content');
-                
-                if (item.classList.contains('active')) {
-                    content.style.maxHeight = content.scrollHeight + 'px';
-                    setTimeout(() => {
-                        content.style.maxHeight = '0px';
-                    }, 10);
-                    item.classList.remove('active');
-                } else {
-                    item.classList.add('active');
-                    content.style.maxHeight = content.scrollHeight + 'px';
-                    setTimeout(() => {
-                        if(item.classList.contains('active')) {
-                            content.style.maxHeight = 'none';
-                        }
-                    }, 300);
-                }
-            });
-        });
+if(navigator.getBattery){
+    navigator.getBattery().then(battery=>{
+        write("");
+        write("Battery Level: " + Math.round(battery.level*100) + "%");
+        write("Charging: " + battery.charging);
     });
+}
+
+fetch("https://api.ipify.org?format=json")
+.then(r=>r.json())
+.then(ip=>{
+    write("");
+    write("Public IP: " + ip.ip);
+});
+
+if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+        pos=>{
+            write("");
+            write("Latitude: " + pos.coords.latitude);
+            write("Longitude: " + pos.coords.longitude);
+            write("Accuracy: " + pos.coords.accuracy + "m");
+        },
+        ()=>{
+            write("");
+            write("Location: ACCESS DENIED");
+        }
+    );
+}
+
+write("");
+write("Scanning browser capabilities...");
+write("");
+
+const features = [
+    "bluetooth",
+    "clipboard",
+    "credentials",
+    "mediaDevices",
+    "serviceWorker",
+    "usb",
+    "wakeLock",
+    "share"
+];
+
+features.forEach(f=>{
+    write(
+        f + ": " +
+        (navigator[f] ? "AVAILABLE" : "UNAVAILABLE")
+    );
+});
+
+setInterval(()=>{
+    document.title =
+        Math.random().toString(36).substring(2,8).toUpperCase();
+},500);
+
 </script>
 
 </body>
